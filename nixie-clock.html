@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link href="https://fonts.googleapis.com/css2?family=Nixie+One&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #070402;
+            color: #ff9d42;
+            font-family: 'Share Tech Mono', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Warm amber/orange vacuum glow */
+        .background-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(255, 102, 0, 0.16) 0%, rgba(7, 4, 2, 0.98) 72%);
+            z-index: 1;
+            animation: pulse-glow 7s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { opacity: 0.6; transform: scale(1); }
+            100% { opacity: 0.95; transform: scale(1.05); }
+        }
+
+        .audio-toggle {
+            position: fixed;
+            top: 14px;
+            right: 16px;
+            z-index: 10;
+            background: rgba(20, 10, 4, 0.72);
+            color: #d9823b;
+            border: 1px solid rgba(255, 150, 70, 0.25);
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            opacity: 0.65;
+            transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .audio-toggle:hover {
+            opacity: 1;
+            color: #ffbe73;
+            border-color: rgba(255, 175, 95, 0.55);
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 1.5rem;
+            max-width: 1200px;
+        }
+
+        .clock-bank {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: clamp(0.35rem, 1vw, 0.85rem);
+            flex-wrap: nowrap;
+        }
+
+        .pair-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pair-tubes {
+            display: flex;
+            align-items: center;
+            gap: clamp(0.3rem, 0.8vw, 0.65rem);
+        }
+
+        /* Individual glass Nixie tube enclosure */
+        .nixie-tube {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: clamp(0.7rem, 1.4vw, 1.15rem) clamp(0.45rem, 0.9vw, 0.8rem) 0;
+            border-radius: 999px 999px 8px 8px;
+            background:
+                radial-gradient(ellipse at 50% 48%, rgba(255, 110, 15, 0.18) 0%, rgba(255, 70, 0, 0.05) 58%, rgba(10, 5, 2, 0.88) 100%),
+                linear-gradient(90deg, rgba(255, 210, 170, 0.13) 0%, rgba(255, 255, 255, 0.02) 20%, rgba(0, 0, 0, 0.35) 80%, rgba(255, 190, 140, 0.08) 100%);
+            border: 1px solid rgba(255, 150, 70, 0.25);
+            box-shadow:
+                inset 0 0 20px rgba(255, 95, 10, 0.22),
+                inset 0 7px 12px rgba(255, 220, 190, 0.12),
+                0 0 24px rgba(255, 90, 0, 0.16),
+                0 12px 24px rgba(0, 0, 0, 0.85);
+            overflow: hidden;
+        }
+
+        /* Glass highlight streak */
+        .nixie-tube::before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            left: 22%;
+            width: 15%;
+            height: 68%;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255, 235, 215, 0.18) 0%, rgba(255, 235, 215, 0) 100%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        /* Anode wire mesh */
+        .nixie-tube::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(rgba(255, 140, 50, 0.14) 1px, transparent 1px),
+                radial-gradient(rgba(255, 140, 50, 0.14) 1px, transparent 1px);
+            background-size: 7px 7px;
+            background-position: 0 0, 3.5px 3.5px;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .digit-slot {
+            position: relative;
+            height: clamp(4.2rem, 8.2vw, 7rem);
+            width: clamp(2.8rem, 5.4vw, 4.6rem);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Unlit stacked cathode ghost filament */
+        .ghost-filament {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Nixie One', cursive;
+            font-size: clamp(2.9rem, 5.8vw, 5rem);
+            color: rgba(120, 55, 20, 0.16);
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .digit-layer {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Nixie One', cursive;
+            font-size: clamp(2.9rem, 5.8vw, 5rem);
+            font-weight: 400;
+            color: #ffbe73;
+            line-height: 1;
+            text-shadow:
+                0 0 4px #fff2df,
+                0 0 10px #ff8c1a,
+                0 0 22px #ff5500,
+                0 0 42px rgba(255, 68, 0, 0.75);
+            z-index: 2;
+            opacity: 1;
+        }
+
+        .digit-layer.incoming {
+            z-index: 2;
+            opacity: 1;
+        }
+
+        .digit-layer.outgoing {
+            z-index: 3;
+            opacity: 1;
+            transition: opacity 0.2s ease-out;
+            pointer-events: none;
+        }
+
+        .digit-layer.outgoing.fading {
+            opacity: 0;
+        }
+
+        /* Narrower colon indicator tube */
+        .colon-tube {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: clamp(0.7rem, 1.4vw, 1.15rem) clamp(0.28rem, 0.55vw, 0.45rem) 0;
+            border-radius: 999px 999px 8px 8px;
+            background:
+                radial-gradient(ellipse at 50% 48%, rgba(255, 110, 15, 0.16) 0%, rgba(255, 70, 0, 0.04) 60%, rgba(10, 5, 2, 0.88) 100%),
+                linear-gradient(90deg, rgba(255, 210, 170, 0.12) 0%, rgba(255, 255, 255, 0.02) 25%, rgba(0, 0, 0, 0.35) 75%, rgba(255, 190, 140, 0.08) 100%);
+            border: 1px solid rgba(255, 150, 70, 0.25);
+            box-shadow:
+                inset 0 0 16px rgba(255, 95, 10, 0.2),
+                inset 0 6px 10px rgba(255, 220, 190, 0.1),
+                0 0 20px rgba(255, 90, 0, 0.14),
+                0 12px 24px rgba(0, 0, 0, 0.85);
+            overflow: hidden;
+            margin-bottom: calc(clamp(0.6rem, 1.2vw, 0.85rem) + 0.65rem);
+        }
+
+        .colon-tube::before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            left: 24%;
+            width: 18%;
+            height: 68%;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255, 235, 215, 0.18) 0%, rgba(255, 235, 215, 0) 100%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .colon-slot {
+            height: clamp(4.2rem, 8.2vw, 7rem);
+            width: clamp(1.1rem, 2vw, 1.7rem);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(0.9rem, 1.8vw, 1.5rem);
+            position: relative;
+            z-index: 2;
+        }
+
+        .neon-dot {
+            width: clamp(7px, 1vw, 11px);
+            height: clamp(7px, 1vw, 11px);
+            border-radius: 50%;
+            background: #ffae52;
+            box-shadow:
+                0 0 5px #fff0db,
+                0 0 12px #ff7b00,
+                0 0 24px rgba(255, 85, 0, 0.85);
+            animation: pulse-colon 1s infinite alternate;
+        }
+
+        @keyframes pulse-colon {
+            0% { opacity: 0.2; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1.06); }
+        }
+
+        /* Bakelite/ceramic tube socket base */
+        .tube-base {
+            width: 100%;
+            height: clamp(10px, 1.4vw, 14px);
+            margin-top: 0.45rem;
+            background: linear-gradient(180deg, #2a180d 0%, #140b06 60%, #090503 100%);
+            border-top: 1px solid rgba(255, 150, 75, 0.3);
+            box-shadow: inset 0 2px 4px rgba(255, 130, 40, 0.15);
+        }
+
+        .pair-label {
+            font-size: clamp(0.6rem, 1.2vw, 0.85rem);
+            color: #d9823b;
+            letter-spacing: 2px;
+            margin-top: 0.65rem;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(255, 102, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .clock-bank {
+                gap: 0.2rem;
+            }
+            .pair-tubes {
+                gap: 0.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-glow"></div>
+    <button id="audio-btn" class="audio-toggle" type="button">HUM: ON (CLICK TO UNMUTE)</button>
+
+    <div class="container">
+        <!-- Optional: set data-timezone="UTC" for Zulu time, or leave blank for local time -->
+        <div class="clock-bank" data-timezone="">
+            <div class="pair-group">
+                <div class="pair-tubes">
+                    <div class="nixie-tube">
+                        <div id="h1-slot" class="digit-slot">
+                            <div class="ghost-filament">8</div>
+                            <div id="h1" class="digit-layer">0</div>
+                        </div>
+                        <div class="tube-base"></div>
+                    </div>
+                    <div class="nixie-tube">
+                        <div id="h2-slot" class="digit-slot">
+                            <div class="ghost-filament">8</div>
+                            <div id="h2" class="digit-layer">0</div>
+                        </div>
+                        <div class="tube-base"></div>
+                    </div>
+                </div>
+                <div class="pair-label">Hours</div>
+            </div>
+
+            <div class="colon-tube">
+                <div class="colon-slot">
+                    <span class="neon-dot"></span>
+                    <span class="neon-dot"></span>
+                </div>
+                <div class="tube-base"></div>
+            </div>
+
+            <div class="pair-group">
+                <div class="pair-tubes">
+                    <div class="nixie-tube">
+                        <div id="m1-slot" class="digit-slot">
+                            <div class="ghost-filament">8</div>
+                            <div id="m1" class="digit-layer">0</div>
+                        </div>
+                        <div class="tube-base"></div>
+                    </div>
+                    <div class="nixie-tube">
+                        <div id="m2-slot" class="digit-slot">
+                            <div class="ghost-filament">8</div>
+                            <div id="m2" class="digit-layer">0</div>
+                        </div>
+                        <div class="tube-base"></div>
+                    </div>
+                </div>
+                <div class="pair-label">Minutes</div>
+            </div>
+
+            <div class="colon-tube">
+                <div class="colon-slot">
+                    <span class="neon-dot"></span>
+                    <span class="neon-dot"></span>
+                </div>
+                <div class="tube-base"></div>
+            </div>
+
+            <div class="pair-group">
+                <div class="pair-tubes">
+                    <div class="nixie-tube">
+                        <div id="s1-slot" class="digit-slot">
+                            <div class="ghost-filament">8</div>
+                            <div id="s1" class="digit-layer">0</div>
+                        </div>
+                        <div class="tube-base"></div>
+                    </div>
+                    <div class="nixie-tube">
+                        <div id="s2-slot" class="digit-slot">
+                            <div class="ghost-filament">8</div>
+                            <div id="s2" class="digit-layer">0</div>
+                        </div>
+                        <div class="tube-base"></div>
+                    </div>
+                </div>
+                <div class="pair-label">Seconds</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var wakeLock = null;
+
+        async function enableWakeLock() {
+            if (!('wakeLock' in navigator)) return;
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', function() {
+                    wakeLock = null;
+                });
+            } catch (err) {}
+        }
+
+        window.addEventListener('load', enableWakeLock);
+        window.addEventListener('pointerdown', function() {
+            if (!wakeLock) enableWakeLock();
+        });
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && !wakeLock) {
+                enableWakeLock();
+            }
+        });
+
+        // Web Audio: 50 Hz Soviet mains hum + 100/150 Hz transformer harmonics + subtle relay pulse
+        let audioCtx = null;
+        let masterGain = null;
+        let humEnabled = true;
+        let audioInitialized = false;
+        let tickToggle = false;
+
+        function setAudioButtonLabel(text) {
+            const btn = document.getElementById('audio-btn');
+            if (btn) btn.textContent = text;
+        }
+
+        function initSovietHum() {
+            if (audioInitialized) {
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume().catch(() => {});
+                }
+                return;
+            }
+
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) {
+                setAudioButtonLabel('HUM: UNSUPPORTED');
+                return;
+            }
+
+            audioCtx = new AudioContextClass();
+
+            // Low-pass filter gives a heavy, warm bench-transformer character
+            const lowpass = audioCtx.createBiquadFilter();
+            lowpass.type = 'lowpass';
+            lowpass.frequency.value = 280;
+            lowpass.Q.value = 1.4;
+
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = humEnabled ? 0.035 : 0.0;
+
+            lowpass.connect(masterGain);
+            masterGain.connect(audioCtx.destination);
+
+            // 50 Hz Soviet AC mains fundamental
+            const osc50 = audioCtx.createOscillator();
+            osc50.type = 'sawtooth';
+            osc50.frequency.value = 50;
+            const gain50 = audioCtx.createGain();
+            gain50.gain.value = 0.55;
+
+            // 100 Hz full-wave rectifier ripple
+            const osc100 = audioCtx.createOscillator();
+            osc100.type = 'sine';
+            osc100.frequency.value = 100;
+            const gain100 = audioCtx.createGain();
+            gain100.gain.value = 0.25;
+
+            // 150 Hz 3rd harmonic core saturation
+            const osc150 = audioCtx.createOscillator();
+            osc150.type = 'triangle';
+            osc150.frequency.value = 150;
+            const gain150 = audioCtx.createGain();
+            gain150.gain.value = 0.12;
+
+            // Very subtle slow drift (0.13 Hz) so it feels like real analog mains/thermal variation
+            const lfo = audioCtx.createOscillator();
+            lfo.type = 'sine';
+            lfo.frequency.value = 0.13;
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 0.35; // +/- 0.35 Hz drift
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc50.frequency);
+
+            osc50.connect(gain50);
+            osc100.connect(gain100);
+            osc150.connect(gain150);
+
+            gain50.connect(lowpass);
+            gain100.connect(lowpass);
+            gain150.connect(lowpass);
+
+            osc50.start();
+            osc100.start();
+            osc150.start();
+            lfo.start();
+
+            audioInitialized = true;
+            setAudioButtonLabel(humEnabled ? 'HUM: ON' : 'HUM: MUTED');
+        }
+
+        function playSubtleRelayTick() {
+            if (!audioInitialized || !humEnabled || !audioCtx || audioCtx.state !== 'running') return;
+
+            const now = audioCtx.currentTime;
+            // Short, soft high-voltage/relay click (alternating slightly in pitch)
+            const clickOsc = audioCtx.createOscillator();
+            const clickGain = audioCtx.createGain();
+
+            clickOsc.type = 'triangle';
+            clickOsc.frequency.setValueAtTime(tickToggle ? 1150 : 920, now);
+            clickOsc.frequency.exponentialRampToValueAtTime(140, now + 0.018);
+
+            clickGain.gain.setValueAtTime(0.0001, now);
+            clickGain.gain.linearRampToValueAtTime(0.018, now + 0.002);
+            clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.022);
+
+            clickOsc.connect(clickGain);
+            clickGain.connect(audioCtx.destination);
+
+            clickOsc.start(now);
+            clickOsc.stop(now + 0.025);
+            tickToggle = !tickToggle;
+        }
+
+        document.getElementById('audio-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!audioInitialized) {
+                humEnabled = true;
+                initSovietHum();
+                return;
+            }
+            humEnabled = !humEnabled;
+            if (masterGain && audioCtx) {
+                masterGain.gain.setTargetAtTime(humEnabled ? 0.035 : 0.0, audioCtx.currentTime, 0.05);
+            }
+            setAudioButtonLabel(humEnabled ? 'HUM: ON' : 'HUM: MUTED');
+        });
+
+        // Unlock audio automatically on first pointer/key gesture on the page
+        window.addEventListener('pointerdown', function() {
+            initSovietHum();
+        }, { once: true });
+        window.addEventListener('keydown', function() {
+            initSovietHum();
+        }, { once: true });
+
+        let previousDigits = {};
+        const clockBank = document.querySelector('.clock-bank');
+        const configuredZone = (clockBank && clockBank.dataset.timezone) ? clockBank.dataset.timezone.trim() : '';
+
+        function updateDigitFade(digitId, newChar) {
+            const slot = document.getElementById(digitId + '-slot');
+            const activeEl = document.getElementById(digitId);
+            if (!slot || !activeEl) return;
+
+            if (previousDigits[digitId] === undefined) {
+                activeEl.textContent = newChar;
+                previousDigits[digitId] = newChar;
+                return;
+            }
+
+            if (previousDigits[digitId] === newChar) {
+                return;
+            }
+
+            const oldChar = previousDigits[digitId];
+
+            // Overlapping outgoing ghost that fades out over 0.2s
+            const ghostOut = document.createElement('div');
+            ghostOut.className = 'digit-layer outgoing';
+            ghostOut.textContent = oldChar;
+            slot.appendChild(ghostOut);
+
+            activeEl.className = 'digit-layer incoming';
+            activeEl.textContent = newChar;
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    ghostOut.classList.add('fading');
+                });
+            });
+
+            setTimeout(() => {
+                ghostOut.remove();
+            }, 220);
+
+            previousDigits[digitId] = newChar;
+        }
+
+        function getClockParts(now) {
+            if (configuredZone) {
+                const parts = new Intl.DateTimeFormat('en-US', {
+                    timeZone: configuredZone,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                }).formatToParts(now);
+
+                const readPart = (type) => {
+                    const found = parts.find(p => p.type === type);
+                    const val = found ? found.value : '00';
+                    return (val === '24' ? '00' : val).padStart(2, '0');
+                };
+
+                return {
+                    hours: readPart('hour'),
+                    minutes: readPart('minute'),
+                    seconds: readPart('second')
+                };
+            }
+
+            return {
+                hours: String(now.getHours()).padStart(2, '0'),
+                minutes: String(now.getMinutes()).padStart(2, '0'),
+                seconds: String(now.getSeconds()).padStart(2, '0')
+            };
+        }
+
+        function updateClock() {
+            const now = new Date();
+            playSubtleRelayTick();
+
+            const { hours, minutes, seconds } = getClockParts(now);
+            updateDigitFade('h1', hours[0]);
+            updateDigitFade('h2', hours[1]);
+            updateDigitFade('m1', minutes[0]);
+            updateDigitFade('m2', minutes[1]);
+            updateDigitFade('s1', seconds[0]);
+            updateDigitFade('s2', seconds[1]);
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
