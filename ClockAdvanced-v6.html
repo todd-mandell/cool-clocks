@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNTHWAVE CHRONO-HUD v4.3 // OUTRUN EDITION</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Orbitron', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --synth-bg: #0c071e;
+            --synth-card-bg: rgba(22, 11, 44, 0.75);
+            --synth-border: rgba(236, 72, 153, 0.4);
+            --synth-primary: #ec4899; /* Hot Pink */
+            --synth-secondary: #06b6d4; /* Electric Cyan */
+            --synth-accent: #a855f7; /* Electric Purple */
+            --synth-glow: rgba(236, 72, 153, 0.45);
+        }
+
+        [data-theme="cyberpunk"] {
+            --synth-bg: #020617;
+            --synth-card-bg: rgba(15, 23, 42, 0.8);
+            --synth-border: rgba(6, 182, 212, 0.5);
+            --synth-primary: #06b6d4;
+            --synth-secondary: #3b82f6;
+            --synth-accent: #f43f5e;
+            --synth-glow: rgba(6, 182, 212, 0.5);
+        }
+
+        [data-theme="midnight"] {
+            --synth-bg: #030305;
+            --synth-card-bg: rgba(10, 10, 15, 0.9);
+            --synth-border: rgba(168, 85, 247, 0.4);
+            --synth-primary: #a855f7;
+            --synth-secondary: #ec4899;
+            --synth-accent: #3b82f6;
+            --synth-glow: rgba(168, 85, 247, 0.45);
+        }
+
+        [data-theme="sunset"] {
+            --synth-bg: #1a0512;
+            --synth-card-bg: rgba(35, 10, 25, 0.85);
+            --synth-border: rgba(249, 115, 22, 0.5);
+            --synth-primary: #f97316;
+            --synth-secondary: #ec4899;
+            --synth-accent: #eab308;
+            --synth-glow: rgba(249, 115, 22, 0.5);
+        }
+
+        body {
+            background-color: var(--synth-bg);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color 0.5s ease;
+            background-image: 
+                radial-gradient(circle at 50% 10%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+                linear-gradient(to bottom, var(--synth-bg) 0%, #05020a 100%);
+        }
+
+        .retro-grid {
+            position: fixed;
+            bottom: 0; left: 0; width: 100vw; height: 40vh;
+            background-image: 
+                linear-gradient(to right, rgba(236, 72, 153, 0.15) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(236, 72, 153, 0.15) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: bottom;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.35;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 999;
+            opacity: 0.4;
+        }
+
+        .synth-card {
+            background: var(--synth-card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--synth-border);
+            box-shadow: 0 0 25px var(--synth-glow);
+            position: relative;
+            z-index: 10;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .synth-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 35px var(--synth-glow);
+            border-color: var(--synth-primary);
+        }
+
+        .synth-glow-text {
+            text-shadow: 0 0 12px var(--synth-primary), 0 0 25px var(--synth-primary);
+        }
+
+        .synth-glow-text-cyan {
+            text-shadow: 0 0 12px var(--synth-secondary), 0 0 25px var(--synth-secondary);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--synth-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--synth-border); border-radius: 3px; }
+    </style>
+</head>
+<body onload="initDashboard()" class="font-sans antialiased pb-24">
+    <div class="retro-grid"></div>
+    <div class="scanlines"></div>
+
+    <header class="w-full border-b border-pink-500/30 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-pink-500/20 to-purple-600/30 border border-pink-500/50 flex items-center justify-center shadow-lg shadow-pink-500/20">
+                    <i class="fa-solid fa-bolt text-pink-400 text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                        <h1 class="text-base sm:text-xl font-black tracking-widest text-pink-400 synth-glow-text font-display">CHRONO-HUD v4.3</h1>
+                    </div>
+                    <p class="text-[10px] text-cyan-300 font-mono tracking-widest uppercase">SYNTHWAVE TEMPORAL COMMAND</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Controls -->
+            <div class="flex items-center space-x-3 z-25">
+                <button onclick="toggleAudio()" id="sound-btn" title="Toggle Synth Sound FX" class="px-3.5 py-2 rounded-xl synth-card text-slate-300 hover:text-pink-400 text-xs font-mono transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-volume-high text-pink-400" id="sound-icon"></i>
+                    <span class="hidden md:inline">AUDIO FX</span>
+                </button>
+
+                <div class="relative">
+                    <select id="theme-selector" onchange="changeTheme(this.value)" class="bg-black/60 border border-pink-500/40 text-pink-300 text-xs font-mono rounded-xl px-3.5 py-2 outline-none cursor-pointer focus:ring-1 focus:ring-pink-400">
+                        <option value="synthwave">THEME: SYNTHWAVE PINK</option>
+                        <option value="cyberpunk">THEME: NEON CYAN</option>
+                        <option value="midnight">THEME: MIDNIGHT PURPLE</option>
+                        <option value="sunset">THEME: RETRO SUNSET</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 relative z-10">
+        
+        <!-- DST & Transition Status Banner -->
+        <section class="mb-8">
+            <div class="synth-card rounded-2xl p-6 sm:p-8 relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-72 h-72 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                    <div class="lg:col-span-2">
+                        <div class="flex items-center space-x-3 mb-3 flex-wrap gap-2">
+                            <span class="px-2.5 py-1 rounded bg-pink-500/15 text-pink-300 border border-pink-500/40 text-xs font-mono uppercase tracking-widest" id="year-badge">SYSTEM YEAR: 2026</span>
+                            <span id="dst-status-badge" class="px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 text-xs font-mono uppercase tracking-wider">DST ACTIVE</span>
+                            <span class="px-2.5 py-1 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 text-xs font-mono uppercase tracking-wider" id="dst-countdown-badge">TRANSITION IN --D --H</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight font-display" id="dst-main-status-title">Daylight Saving Time Operational Status</h2>
+                        <p class="text-xs sm:text-sm text-slate-300 mt-2 font-mono" id="dst-countdown-desc">Computing North American temporal transition vectors...</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 border-t lg:border-t-0 lg:border-l border-pink-500/20 pt-4 lg:pt-0 lg:pl-6">
+                        <div class="bg-black/40 p-3.5 rounded-xl border border-pink-500/20">
+                            <div class="text-[10px] text-pink-400 font-mono tracking-wider">DST START (2ND SUN MAR)</div>
+                            <div id="dst-start-display" class="text-xs sm:text-sm font-bold text-white font-mono mt-1">--/--/----</div>
+                        </div>
+                        <div class="bg-black/40 p-3.5 rounded-xl border border-pink-500/20">
+                            <div class="text-[10px] text-cyan-400 font-mono tracking-wider">DST END (1ST SUN NOV)</div>
+                            <div id="dst-end-display" class="text-xs sm:text-sm font-bold text-white font-mono mt-1">--/--/----</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="primary-clock-grid">
+            
+            <!-- Eastern Time Zone -->
+            <div class="synth-card rounded-2xl p-6 relative group">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-[10px] font-mono text-pink-400 tracking-widest uppercase">PRIMARY REGION</span>
+                        <h3 class="text-lg font-bold text-white font-display">Eastern Time</h3>
+                    </div>
+                    <span id="et-offset-tag" class="px-2 py-0.5 rounded bg-pink-500/15 text-pink-300 border border-pink-500/30 text-xs font-mono">UTC-5</span>
+                </div>
+                
+                <div class="my-4">
+                    <div id="et-time" class="text-4xl sm:text-5xl font-black font-display text-white synth-glow-text tracking-wider">00:00:00</div>
+                    <div class="flex justify-between items-center mt-2">
+                        <div id="et-date" class="text-xs font-mono text-slate-300">YYYY-MM-DD</div>
+                        <span id="et-zone-abbr" class="text-xs font-mono text-cyan-300 font-bold">EST / UTC-5</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-pink-500/20 text-[11px] font-mono text-slate-400">
+                    <span class="text-pink-300 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-city"></i>
+                        <span>New York / Atlanta</span>
+                    </span>
+                    <span class="text-emerald-400 flex items-center space-x-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>ONLINE</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Coordinated Universal Time (UTC) -->
+            <div class="synth-card rounded-2xl p-6 relative group">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-[10px] font-mono text-cyan-400 tracking-widest uppercase">GLOBAL REFERENCE</span>
+                        <h3 class="text-lg font-bold text-white font-display">Universal Time</h3>
+                    </div>
+                    <span class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-xs font-mono">UTC+0</span>
+                </div>
+                
+                <div class="my-4">
+                    <div id="utc-time" class="text-4xl sm:text-5xl font-black font-display text-white synth-glow-text-cyan tracking-wider">00:00:00</div>
+                    <div class="flex justify-between items-center mt-2">
+                        <div id="utc-date" class="text-xs font-mono text-slate-300">YYYY-MM-DD</div>
+                        <span class="text-xs font-mono text-cyan-300 font-bold">UTC / ZULU</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-pink-500/20 text-[11px] font-mono text-slate-400">
+                    <span class="text-cyan-300 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-globe"></i>
+                        <span>Greenwich Meridian</span>
+                    </span>
+                    <span class="text-emerald-400 flex items-center space-x-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>ONLINE</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Central Time Zone -->
+            <div class="synth-card rounded-2xl p-6 relative group">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-[10px] font-mono text-pink-400 tracking-widest uppercase">US CENTRAL</span>
+                        <h3 class="text-lg font-bold text-white font-display">Central Time</h3>
+                    </div>
+                    <span class="px-2 py-0.5 rounded bg-pink-500/15 text-pink-300 border border-pink-500/30 text-xs font-mono">America/Chicago</span>
+                </div>
+                
+                <div class="my-4">
+                    <div id="ct-time" class="text-4xl sm:text-5xl font-black font-display text-white synth-glow-text tracking-wider">00:00:00</div>
+                    <div class="flex justify-between items-center mt-2">
+                        <div id="ct-date" class="text-xs font-mono text-slate-300">YYYY-MM-DD</div>
+                        <span class="text-xs font-mono text-pink-300 font-bold">CST / CDT</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-pink-500/20 text-[11px] font-mono text-slate-400">
+                    <span class="text-pink-300 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                        <span>Chicago / Dallas</span>
+                    </span>
+                    <span class="text-emerald-400 flex items-center space-x-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>ONLINE</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Mountain Time Zone -->
+            <div class="synth-card rounded-2xl p-6 relative group">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-[10px] font-mono text-pink-400 tracking-widest uppercase">US MOUNTAIN</span>
+                        <h3 class="text-lg font-bold text-white font-display">Mountain Time</h3>
+                    </div>
+                    <span class="px-2 py-0.5 rounded bg-pink-500/15 text-pink-300 border border-pink-500/30 text-xs font-mono">America/Denver</span>
+                </div>
+                
+                <div class="my-4">
+                    <div id="mt-time" class="text-4xl sm:text-5xl font-black font-display text-white synth-glow-text tracking-wider">00:00:00</div>
+                    <div class="flex justify-between items-center mt-2">
+                        <div id="mt-date" class="text-xs font-mono text-slate-300">YYYY-MM-DD</div>
+                        <span class="text-xs font-mono text-pink-300 font-bold">MST / MDT</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-pink-500/20 text-[11px] font-mono text-slate-400">
+                    <span class="text-pink-300 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-mountain"></i>
+                        <span>Denver / Salt Lake</span>
+                    </span>
+                    <span class="text-emerald-400 flex items-center space-x-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>ONLINE</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Pacific Time Zone -->
+            <div class="synth-card rounded-2xl p-6 relative group">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-[10px] font-mono text-pink-400 tracking-widest uppercase">US PACIFIC</span>
+                        <h3 class="text-lg font-bold text-white font-display">Pacific Time</h3>
+                    </div>
+                    <span class="px-2 py-0.5 rounded bg-pink-500/15 text-pink-300 border border-pink-500/30 text-xs font-mono">America/Los_Angeles</span>
+                </div>
+                
+                <div class="my-4">
+                    <div id="pt-time" class="text-4xl sm:text-5xl font-black font-display text-white synth-glow-text tracking-wider">00:00:00</div>
+                    <div class="flex justify-between items-center mt-2">
+                        <div id="pt-date" class="text-xs font-mono text-slate-300">YYYY-MM-DD</div>
+                        <span class="text-xs font-mono text-pink-300 font-bold">PST / PDT</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-pink-500/20 text-[11px] font-mono text-slate-400">
+                    <span class="text-pink-300 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-water"></i>
+                        <span>Los Angeles / Seattle</span>
+                    </span>
+                    <span class="text-emerald-400 flex items-center space-x-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>ONLINE</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Custom World Clock Module -->
+            <div class="synth-card rounded-2xl p-6 relative group flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-[10px] font-mono text-cyan-400 tracking-widest uppercase">WORLD CLOCK MODULE</span>
+                            <h3 class="text-lg font-bold text-white font-display">Custom Zone Tracker</h3>
+                        </div>
+                        <span class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-xs font-mono">ACTIVE</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex space-x-2">
+                            <select id="custom-tz-select" class="w-full bg-black/60 border border-pink-500/40 text-pink-300 text-xs font-mono rounded-xl px-3 py-2 outline-none">
+                                <option value="Europe/London">London (GMT/BST)</option>
+                                <option value="Asia/Tokyo">Tokyo (JST)</option>
+                                <option value="Australia/Sydney">Sydney (AEST)</option>
+                                <option value="Europe/Paris">Paris (CET)</option>
+                                <option value="Asia/Dubai">Dubai (GST)</option>
+                                <option value="America/Sao_Paulo">São Paulo (BRT)</option>
+                            </select>
+                            <button onclick="addCustomClock()" class="px-3.5 py-2 bg-pink-500/20 border border-pink-500/50 text-pink-300 rounded-xl hover:bg-pink-500/30 text-xs font-mono transition-all">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <!-- Dynamic container for added custom clocks -->
+                        <div id="dynamic-clocks-container" class="space-y-2 max-h-36 overflow-y-auto pr-1">
+                            <div class="bg-black/50 p-3 rounded-xl border border-pink-500/20 flex justify-between items-center" data-tz="Europe/London">
+                                <div>
+                                    <div class="text-[10px] font-mono text-cyan-300">Europe/London</div>
+                                    <div class="custom-clock-time text-lg font-bold font-display text-white mt-0.5" data-tz="Europe/London">00:00:00</div>
+                                </div>
+                                <button onclick="removeClock(this)" class="text-slate-500 hover:text-pink-400 text-xs px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-pink-500/20 flex justify-between items-center text-[10px] font-mono text-slate-400">
+                    <span>SYNTH LATENCY</span>
+                    <span class="text-emerald-400">0.18ms</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Web Audio API Synth Sound Generator
+        let audioCtx = null;
+        let soundEnabled = false;
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-btn');
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                btn.classList.add('border-pink-400', 'text-pink-400');
+                icon.className = "fa-solid fa-volume-high text-pink-400";
+                playSynthBeep(587.33, 0.08); // D5 note
+            } else {
+                btn.classList.remove('border-pink-400', 'text-pink-400');
+                icon.className = "fa-solid fa-volume-xmark text-slate-400";
+            }
+        }
+
+        function playSynthBeep(frequency, duration) {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.value = frequency;
+                gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function changeTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            playSynthBeep(880, 0.08);
+        }
+
+        function addCustomClock() {
+            playSynthBeep(784, 0.08);
+            const select = document.getElementById('custom-tz-select');
+            const tz = select.value;
+            const container = document.getElementById('dynamic-clocks-container');
+            
+            if (container.querySelector(`[data-tz="${tz}"]`)) return;
+
+            const div = document.createElement('div');
+            div.className = "bg-black/50 p-3 rounded-xl border border-pink-500/20 flex justify-between items-center";
+            div.setAttribute('data-tz', tz);
+            div.innerHTML = `
+                <div>
+                    <div class="text-[10px] font-mono text-cyan-300">${tz}</div>
+                    <div class="custom-clock-time text-lg font-bold font-display text-white mt-0.5" data-tz="${tz}">00:00:00</div>
+                </div>
+                <button onclick="removeClock(this)" class="text-slate-500 hover:text-pink-400 text-xs px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeClock(btn) {
+            playSynthBeep(440, 0.08);
+            btn.closest('div[data-tz]').remove();
+        }
+
+        function initDashboard() {
+            startTime();
+        }
+
+        // Helper logic to find exact second Sunday of March and first Sunday of November for any given year
+        function getDstDates(y) {
+            var mar = new Date(y, 2, 1);
+            var marSecondSunday = 1 + (7 - mar.getDay() + 7) % 7 + 7;
+            var startDate = new Date(y, 2, marSecondSunday, 2, 0, 0);
+            var nov = new Date(y, 10, 1);
+            var novFirstSunday = 1 + (7 - nov.getDay() + 7) % 7;
+            var endDate = new Date(y, 10, novFirstSunday, 2, 0, 0);
+            return {
+                startObj: startDate,
+                endObj: endDate,
+                start: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                end: endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            };
+        }
+
+        function startTime() {
+            var today = new Date();
+            var year = today.getFullYear();
+            
+            // Dynamically check if Daylight Saving Time (DST) is active
+            var jan = new Date(year, 0, 1);
+            var isDstActive = today.getTimezoneOffset() < jan.getTimezoneOffset();
+            var dstStatus = isDstActive ? "Daylight Saving Time (DST) is ACTIVE" : "Standard Time is ACTIVE (DST is inactive)";
+            
+            // Format options for 24-hour digital clock and date
+            var optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            var optionsDate = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            
+            // Accurate times for zones locally using browser's built-in engine
+            var utcTime = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'UTC' }).format(today);
+            var utcDate = new Intl.DateTimeFormat('en-US', { ...optionsDate, timeZone: 'UTC' }).format(today);
+
+            var etTime  = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'America/New_York' }).format(today);
+            var etDate  = new Intl.DateTimeFormat('en-US', { ...optionsDate, timeZone: 'America/New_York' }).format(today);
+
+            var ctTime  = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'America/Chicago' }).format(today);
+            var ctDate  = new Intl.DateTimeFormat('en-US', { ...optionsDate, timeZone: 'America/Chicago' }).format(today);
+
+            var mtTime  = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'America/Denver' }).format(today);
+            var mtDate  = new Intl.DateTimeFormat('en-US', { ...optionsDate, timeZone: 'America/Denver' }).format(today);
+
+            var ptTime  = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'America/Los_Angeles' }).format(today);
+            var ptDate  = new Intl.DateTimeFormat('en-US', { ...optionsDate, timeZone: 'America/Los_Angeles' }).format(today);
+            
+            // Dynamically fetch Eastern timezone abbreviation (EDT or EST) and UTC offset representation
+            var etZoneName = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', timeZoneName: 'short' })
+                .formatToParts(today)
+                .find(part => part.type === 'timeZoneName').value;
+                
+            var currentUtcOffset = isDstActive ? "UTC-4" : "UTC-5";
+            var dstDates = getDstDates(year);
+
+            // Compute countdown to next DST transition
+            let targetTransition = isDstActive ? dstDates.endObj : dstDates.startObj;
+            if (today > targetTransition) {
+                targetTransition = getDstDates(year + 1).startObj;
+            }
+            let diffMs = targetTransition - today;
+            let diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            let diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+            // Update DOM elements safely
+            const setElementText = (id, text) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = text;
+            };
+
+            setElementText('et-time', etTime);
+            setElementText('et-date', etDate);
+            setElementText('utc-time', utcTime);
+            setElementText('utc-date', utcDate);
+            setElementText('ct-time', ctTime);
+            setElementText('ct-date', ctDate);
+            setElementText('mt-time', mtTime);
+            setElementText('mt-date', mtDate);
+            setElementText('pt-time', ptTime);
+            setElementText('pt-date', ptDate);
+
+            setElementText('dst-start-display', dstDates.start);
+            setElementText('dst-end-display', dstDates.end);
+            setElementText('year-badge', `SYSTEM YEAR: ${year}`);
+            setElementText('dst-main-status-title', dstStatus);
+            setElementText('et-zone-abbr', `${etZoneName} / ${currentUtcOffset}`);
+            setElementText('et-offset-tag', currentUtcOffset);
+            setElementText('dst-countdown-badge', `TRANSITION: ${diffDays}D ${diffHours}H`);
+
+            // Update badge style
+            const badge = document.getElementById('dst-status-badge');
+            if (badge) {
+                badge.innerText = isDstActive ? "DST ACTIVE" : "STANDARD TIME";
+                badge.className = isDstActive ? 
+                    "px-2.5 py-1 rounded bg-pink-500/15 text-pink-300 border border-pink-500/40 text-xs font-mono uppercase tracking-wider" :
+                    "px-2.5 py-1 rounded bg-blue-500/15 text-blue-300 border border-blue-500/40 text-xs font-mono uppercase tracking-wider";
+            }
+
+            // Update custom clocks
+            document.querySelectorAll('.custom-clock-time').forEach(el => {
+                const tz = el.getAttribute('data-tz');
+                try {
+                    const tStr = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: tz }).format(today);
+                    el.innerText = tStr;
+                } catch(e) {}
+            });
+
+            setTimeout(startTime, 500);
+        }
+    </script>
+</body>
+</html>

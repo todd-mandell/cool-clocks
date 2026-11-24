@@ -1,0 +1,273 @@
+<html>
+<head>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #111111;
+    --muted: #555555;
+    --control-bg: #f4f4f4;
+    --control-border: #cccccc;
+    --font-stack: sans-serif;
+    --font-smooth: auto;
+  }
+  [data-theme="dark"] {
+    --bg: #121212;
+    --fg: #eaeaea;
+    --muted: #a0a0a0;
+    --control-bg: #222222;
+    --control-border: #444444;
+  }
+  [data-theme="extraDark"] {
+	--bg: #000000;
+    --fg: #262626;
+    --muted: #181818;
+    --control-bg: #050505;
+    --control-border: #141414;
+  }  
+  [data-theme="ocean"] {
+    --bg: #0c2233;
+    --fg: #e2f1fc;
+    --muted: #8cb8d8;
+    --control-bg: #15364f;
+    --control-border: #2b5b80;
+  }
+  [data-theme="amber"] {
+    --bg: #1b1508;
+    --fg: #ffdfa0;
+    --muted: #c79f52;
+    --control-bg: #2b220d;
+    --control-border: #5c491d;
+  }
+  [data-theme="slate"] {
+    --bg: #23272e;
+    --fg: #d8dee9;
+    --muted: #8892a4;
+    --control-bg: #2e3440;
+    --control-border: #4c566a;
+  }
+  [data-theme="sepia"] {
+    --bg: #f4ecd8;
+    --fg: #3b2f23;
+    --muted: #6e5b47;
+    --control-bg: #e7dcc3;
+    --control-border: #bfa988;
+  }
+  [data-theme="crt-green"] {
+    --bg: #041004;
+    --fg: #33ff33;
+    --muted: #1fa81f;
+    --control-bg: #092209;
+    --control-border: #25b825;
+    --font-stack: "Fixedsys", "Terminal", "Perfect DOS VGA 437", "PxPlus IBM VGA8", "Courier New", monospace;
+    --font-smooth: none;
+  }
+  [data-theme="dos-cga"] {
+    --bg: #0000aa;
+    --fg: #55ffff;
+    --muted: #ff55ff;
+    --control-bg: #00aaaa;
+    --control-border: #ffffff;
+    --font-stack: "Fixedsys", "Terminal", "Perfect DOS VGA 437", "PxPlus IBM VGA8", "Courier New", monospace;
+    --font-smooth: none;
+  }
+/* Cockpit / astronomy red to preserve night vision */
+  [data-theme="night-red"] {
+    --bg: #000000;
+    --fg: #a80000;
+    --muted: #660000;
+    --control-bg: #0d0000;
+    --control-border: #3d0000;
+  }
+
+  /* Calm deep pine for everyday viewing (keeps sans-serif) */
+  [data-theme="forest"] {
+    --bg: #0f1f18;
+    --fg: #dceee2;
+    --muted: #7ea88e;
+    --control-bg: #172e24;
+    --control-border: #2f5443;
+  }
+
+  /* Readable from across the room (keeps sans-serif) */
+  [data-theme="high-contrast"] {
+    --bg: #000000;
+    --fg: #ffff00;
+    --muted: #00ffff;
+    --control-bg: #111111;
+    --control-border: #ffff00;
+  }
+
+  /* 1980s monochrome amber phosphor CRT */
+  [data-theme="crt-amber"] {
+    --bg: #120900;
+    --fg: #ffb000;
+    --muted: #b37700;
+    --control-bg: #241200;
+    --control-border: #805500;
+    --font-stack: "Fixedsys", "Terminal", "Perfect DOS VGA 437", "PxPlus IBM VGA8", "Courier New", monospace;
+    --font-smooth: none;
+  }
+
+  /* Commodore 64 indigo & light blue */
+  [data-theme="c64"] {
+    --bg: #3e31a2;
+    --fg: #a69cf2;
+    --muted: #7c70da;
+    --control-bg: #32268a;
+    --control-border: #7c70da;
+    --font-stack: "Fixedsys", "Terminal", "Perfect DOS VGA 437", "PxPlus IBM VGA8", "Courier New", monospace;
+    --font-smooth: none;
+  }
+
+  /* Original 1989 Game Boy olive LCD */
+  [data-theme="gameboy"] {
+    --bg: #9bbc0f;
+    --fg: #0f380f;
+    --muted: #306230;
+    --control-bg: #8bac0f;
+    --control-border: #0f380f;
+    --font-stack: "Fixedsys", "Terminal", "Perfect DOS VGA 437", "PxPlus IBM VGA8", "Courier New", monospace;
+    --font-smooth: none;
+  }
+
+  /* WordPerfect 5.1 / classic DOS white-on-blue */
+  [data-theme="wp-blue"] {
+    --bg: #0000aa;
+    --fg: #ffffff;
+    --muted: #ffff55;
+    --control-bg: #000080;
+    --control-border: #aaaaaa;
+    --font-stack: "Fixedsys", "Terminal", "Perfect DOS VGA 437", "PxPlus IBM VGA8", "Courier New", monospace;
+    --font-smooth: none;
+  }
+
+
+
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-stack);
+    -webkit-font-smoothing: var(--font-smooth);
+    font-smooth: var(--font-smooth);
+    margin: 20px;
+  }
+  .toolbar {
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  select {
+    background-color: var(--control-bg);
+    color: var(--fg);
+    border: 1px solid var(--control-border);
+    font-family: var(--font-stack);
+    padding: 4px 8px;
+    font-size: 14px;
+  }
+  .top-dates {
+    font-size: 0.55em;
+    color: var(--muted);
+    font-weight: normal;
+  }
+</style>
+<script type="text/javascript">
+function setTheme(theme) {
+    if (theme === "light") {
+        document.documentElement.removeAttribute("data-theme");
+    } else {
+        document.documentElement.setAttribute("data-theme", theme);
+    }
+}
+
+function startTime() {
+    var today = new Date();
+    var year = today.getFullYear();
+    
+    // Dynamically check if Daylight Saving Time (DST) is active
+    var jan = new Date(year, 0, 1);
+    var isDstActive = today.getTimezoneOffset() < jan.getTimezoneOffset();
+    var dstStatus = isDstActive ? "Daylight Saving Time (DST) is ACTIVE" : "Standard Time is ACTIVE (DST is inactive)";
+
+    // Format options for 24-hour digital clock
+    var optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    var optionsDate = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+    
+    // Get accurate times for respective zones locally using browser's built-in engine
+    var utcTime = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'UTC' }).format(today);
+    var etTime  = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'America/New_York' }).format(today);
+    var ctTime  = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'America/Chicago' }).format(today);
+    var mtTime  = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'America/Denver' }).format(today);
+    var ptTime  = new Intl.DateTimeFormat('en-US', { ...optionsTime, timeZone: 'America/Los_Angeles' }).format(today);
+
+    // Top date references: local date and UTC/Zulu date
+    var localDate = new Intl.DateTimeFormat('en-US', optionsDate).format(today);
+    var gmtDate   = new Intl.DateTimeFormat('en-US', { ...optionsDate, timeZone: 'UTC' }).format(today);
+
+    // Dynamically fetch the correct Eastern timezone abbreviation (EDT or EST) and UTC offset representation
+    var etZoneName = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', timeZoneName: 'short' })
+        .formatToParts(today)
+        .find(part => part.type === 'timeZoneName').value;
+    
+    var currentUtcOffset = isDstActive ? "UTC-4" : "UTC-5";
+
+    // Helper logic to find exact second Sunday of March and first Sunday of November for any given year
+    function getDstDates(y) {
+        var mar = new Date(y, 2, 1);
+        var marSecondSunday = 1 + (7 - mar.getDay() + 7) % 7 + 7;
+        var startDate = new Date(y, 2, marSecondSunday);
+
+        var nov = new Date(y, 10, 1);
+        var novFirstSunday = 1 + (7 - nov.getDay() + 7) % 7;
+        var endDate = new Date(y, 10, novFirstSunday);
+
+        return {
+            start: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            end: endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+    }
+
+    var dstDates = getDstDates(year);
+
+    // Build output HTML
+    var outputHTML = "<font size=10>" + 
+        "<b>Date:</b> " + localDate + "<br>" +
+        "<b>Status:</b> " + dstStatus + "<br>" +
+        "<font size=6><i>DST Details (" + year + ") <br>DST Starts 2nd Sunday of March (" + dstDates.start + ") <br>DST Ends 1st Sunday of November (" + dstDates.end + ")</i></font><br><br>" +
+        etTime + " --- " + etZoneName + " / " + currentUtcOffset + "<br>" +
+        utcTime + " --- UTC / GMT / ZULU<br>" +
+        "<span class='zulu-date'>UTC Date: " + gmtDate + "</span><br><br>" +
+        ctTime + " --- Central Time<br>" +
+        mtTime + " --- Mountain Time<br>" +
+        ptTime + " --- Pacific Time" +
+        "</font>";
+
+    document.getElementById('txt').innerHTML = outputHTML;
+    setTimeout(startTime, 500);
+}
+</script>
+</head>
+<body onload="startTime()">
+<div class="toolbar">
+  <label for="scheme">Color scheme: </label>
+  <select id="scheme" onchange="setTheme(this.value)">
+    <option value="light" selected>Light</option>
+    <option value="dark">Dark</option>
+    <option value="extraDark">Extra-Dark</option>
+    <option value="ocean">Ocean</option>
+    <option value="amber">Amber</option>
+    <option value="slate">Slate</option>
+    <option value="sepia">Sepia</option>
+    <option value="crt-green">Terminal Green (Monochrome CRT)</option>
+    <option value="dos-cga">DOS CGA (Blue / Cyan / Magenta)</option>
+    <option value="night-red">Night Vision Red</option>
+    <option value="forest">Forest</option>
+    <option value="high-contrast">High Contrast (Across the Room)</option>
+    <option value="crt-amber">Amber CRT (Monochrome)</option>
+    <option value="c64">Commodore 64</option>
+    <option value="gameboy">Game Boy LCD</option>
+    <option value="wp-blue">DOS Blue (WordPerfect 5.1)</option>
+  </select>
+</div>
+<div id="txt"></div>
+</body>
+</html>
